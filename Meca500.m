@@ -1,0 +1,73 @@
+classdef Meca500 < handle
+    properties     
+        my3; %> Robot my3
+        workspace = [-0.6 0.6 -0.6 0.6 -0.1 0.65];       
+    end
+    
+    methods%% Class for meca robot simulation
+        function meca = Meca500(toolModelAndTCPFilenames)
+            if 0 < nargin
+                if length(toolModelAndTCPFilenames) ~= 2
+                    error('Please pass a cell with two strings, toolModelFilename and toolCenterPointFilename');
+                end
+                meca.toolModelFilename = toolModelAndTCPFilenames{1};
+                meca.toolParametersFilenamure = toolModelAndTCPFilenames{2};
+            end
+            
+            meca.DobotRobot();
+            meca.PlotAndColourRobot();%robot,workspace);
+        end
+
+        %% DobotRobot
+        % Given a name (optional), create and return a meca robot my3
+        function DobotRobot(meca) 
+            pause(0.001);
+            name = ['Meca500_',datestr(now,'yyyymmddTHHMMSSFFF')]; 
+        L1 = Link('d',0.135,'a',0,'alpha',(-3*pi)/2,'qlim',deg2rad([-175 175]), 'offset',0);
+        L2 = Link('d',0,'a',0.135,'alpha',2*pi,'qlim', deg2rad([-70 90]), 'offset',pi/2);
+        L3 = Link('d',0,'a',0.038,'alpha',pi/2,'qlim', deg2rad([-70 135]), 'offset', 0);
+        L4 = Link('d',0.12,'a',0,'alpha',pi/2,'qlim',deg2rad([-170 170]),'offset', 0);
+        L5 = Link('d',0,'a',0,'alpha',pi/2,'qlim',deg2rad([-115 115]), 'offset',-pi);
+        L6 = Link('d',0.07,'a',0,'alpha',0,'qlim',deg2rad([-115 115]), 'offset',0);
+
+            meca.my3 = SerialLink([L1 L2 L3 L4 L5 L6],'name',name);
+        end
+
+        %% PlotAndColourRobot
+        % Given a robot index, add the glyphs (vertices and faces) and
+        % colour them in if data is available 
+        function PlotAndColourRobot(meca)%robot,workspace)
+            for linkIndex = 0:meca.my3.n
+                [faceData,vertexData,plyData{linkIndex + 1} ] = plyread(['Link_',num2str(linkIndex),'.ply'],'tri');         
+                meca.my3.faces{linkIndex + 1} = faceData;
+                meca.my3.points{linkIndex + 1} = vertexData;
+            end
+
+            % Display robot
+            meca.my3.plot3d(zeros(1,meca.my3.n),'noarrow','workspace',meca.workspace,'tile1color',[1 1 1]);
+            if isempty(findobj(get(gca,'Children'),'Type','Light'))
+                camlight
+            end  
+            meca.my3.delay = 0;
+            %% Color
+            for linkIndex = 0:meca.my3.n
+                handles = findobj('Tag', meca.my3.name);
+                h = get(handles,'UserData');
+                try 
+                h.link(linkIndex+1).Children.FaceVertexCData = [plyData{linkIndex+1}.vertex.red ...
+                                                          , plyData{linkIndex+1}.vertex.green ...
+                                                          , plyData{linkIndex+1}.vertex.blue]/255;
+                h.link(linkIndex+1).Children.FaceColor = 'interp';
+                catch ME_1
+                    disp(ME_1);
+                    continue;
+                end
+            end
+            %
+        end        
+    end
+end
+
+
+
+

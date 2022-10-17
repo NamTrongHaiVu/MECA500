@@ -31,7 +31,7 @@ classdef Meca500 < handle
         L6 = Link('d',0.07,'a',0,'alpha',0,'qlim',deg2rad([-115 115]), 'offset',0);
 
             meca.my3 = SerialLink([L1 L2 L3 L4 L5 L6],'name',name);
-            meca.my3.base = meca.my3.base * trotz(180,'deg') * transl(-0.7,0,0);
+            meca.my3.base = meca.my3.base * trotz(90,'deg') * transl(0,-0.65,0);
         end
 
         %% PlotAndColourRobot

@@ -3,7 +3,7 @@ function environment()
 surf([-3.75,-3.75;3,3],[-3,3.2;-3,3.2],[-0.75,-0.75;-0.75,-0.75],'CData',imread('floor.jpg'),'FaceColor','texturemap');
 hold on
 PlaceObject('table.ply',[1.7,0,0]);
-PlaceObject('wall.ply',[1.5,-3,0.77]);
+PlaceObject('wall2.ply',[1.5,-3,0.77]);
 %PlaceObject('sit.ply',[-2.4,2,-0.7]);
 
 axis equal

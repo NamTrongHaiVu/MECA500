@@ -1,47 +1,84 @@
-%% Robotics
-% Lab 4 - Question 3 & 4 - Inverse Kinematics & Joint Interpolation
-function RunDobot
 
 clear all; close all; clc
-%%
-interpolation = 2;                                                          % 1 = Quintic Polynomial, 2 = Trapezoidal Velocity
-steps = 10;                                                                % Specify no. of steps
+robot = UR3;
+q = [0 0 0 0 0 0];
 
-robot = LinearMYUR3(false);                                                         
+%% Create object
+centerpnt = [-0.4,0,0.2];
+side = 0.3;
+plotOptions.plotFaces = true;
+[vertex,faces,faceNormals] = RectangularPrism(centerpnt-side/2, centerpnt+side/2,plotOptions);
+axis equal
 
+%% Get the transform of every joint
+% tr = zeros(4,4,robot.model.n+1);
+% tr(:,:,1) = robot.model.base;
+% L = robot.model.links;
+% for i = 1 : robot.model.n
+%     tr(:,:,i+1) = tr(:,:,i) * trotz(q(i)+L(i).offset) * transl(0,0,L(i).d) * transl(L(i).a,0,0) * trotx(L(i).alpha);
+% end
 
-%% Define End-Effector transformation, use inverse kinematics to get joint angles
-q1 =  [0, 0, 0, 0];
-q2 =  [0.9113, -0.5942, -0.01781, 0]  ;                                                   % Use inverse kinematics to get the joint angles
+%% Go through each link and also each triangle face
+% q1 = [-pi/2,0,0,pi,-pi/2,0];
+% qmid = [0 -90 150 120 -900]*pi/180;
+% q2 = [40 0 0 180 -90 0]*pi/180;
 
-%% Interpolate joint angles, also calculate relative velocity, accleration
-qMatrix = jtraj(q1,q2,steps);
-switch interpolation
-    case 1
-        qMatrix = jtraj(q1,q2,steps);
-    case 2
-        s = lspb(0,1,steps);                                             	% First, create the scalar function
-        qMatrix = nan(steps,4);                                             % Create memory allocation for variables
-            for i = 1:steps
-                qMatrix(i,:) = (1-s(i))*q1 + s(i)*q2;                   	% Generate interpolated joint angles
+% while ~isempty(find(1 < abs(diff(rad2deg(jtraj(q1,q2,steps)))),1))
+%     steps = steps + 1;
+% end
+%qMatrix = jtraj(q1,q2,steps);
+% 
+% result = true(steps,1);
+% for i = 1: steps
+%     result(i) = IsCollision(robot.model,qMatrix(i,:),faces,vertex,faceNormals,false);
+%     robot.model.animate(qMatrix(i,:));
+%     drawnow
+% end
+
+%% Random
+q1 = [-pi/2,0,0,pi,-pi/2,0];
+qmid = [0 -90 150 120 -900]*pi/180;
+q2 = [40 0 0 180 -90 0]*pi/180;
+steps = 300;
+
+robot.model.animate(q1);
+qWaypoints = [q1;q2];
+isCollision = true;
+checkedTillWaypoint = 1;
+qMatrix(:,:,10) = [];
+while (isCollision)
+    startWaypoint = checkedTillWaypoint;
+    for i = startWaypoint:size(qWaypoints,1)-1
+        qMatrixJoin = InterpolateWaypointRadians(qWaypoints(i:i+1,:),deg2rad(10));
+        if ~IsCollision(robot.model,qMatrixJoin,faces,vertex,faceNormals)
+            qMatrix = [qMatrix; qMatrixJoin]; %#ok<AGROW>
+            robot.model.animate(qMatrixJoin);
+            drawnow
+            pause(0.01)
+            size(qMatrix);
+            isCollision = false;
+            checkedTillWaypoint = i+1;
+            % Now try and join to the final goal (q2)
+            qMatrixJoin = InterpolateWaypointRadians([qMatrix(end,:); q2],deg2rad(10));
+            if ~IsCollision(robot.model,qMatrixJoin,faces,vertex,faceNormals)
+                qMatrix = [qMatrix;qMatrixJoin];
+                % Reached goal without collision, so break out
+                disp('break here')
+                break;
             end
-    otherwise
-        error('interpolation = 1 for Quintic Polynomial, or 2 for Trapezoidal Velocity')
-end
-        
-velocity = zeros(steps,4);
-acceleration  = zeros(steps,4);
-for i = 2:steps
-    velocity(i,:) = qMatrix(i,:) - qMatrix(i-1,:)                          % Evaluate relative joint velocity
-    acceleration(i,:) = velocity(i,:) - velocity(i-1,:);                    % Evaluate relative acceleration
-end
-
-%% Plot the results
-figure(1)
-
-for i =1:steps
-    pause(0.1);
-    robot.my3.animate(qMatrix(i,:))                                             % Plot the motion between poses, draw a red line of the end-effector path
+        else
+            % Randomly pick a pose that is not in collision
+            qRand = (2 * rand(1,6) - 1) * pi;
+            while IsCollision(robot.model,qRand,faces,vertex,faceNormals)
+                qRand = (2 * rand(1,6) - 1) * pi;
+            end
+            qWaypoints =[ qWaypoints(1:i,:); qRand; qWaypoints(i+1:end,:)];
+            isCollision = true;
+            break;
+        end
+    end
 end
 
-%% test
+% robot.model.animate(qMatrix)
+% drawnow
+

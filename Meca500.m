@@ -1,7 +1,8 @@
 classdef Meca500 < handle
     properties     
         my3; %> Robot my3
-        workspace = [-0.6 0.6 -0.6 0.6 -0.1 0.65];       
+        workspace = [-0.6 1 -0.6 0.6 -0.1 0.65];      
+%         EStop = false;
     end
     
     methods%% Class for meca robot simulation
@@ -17,7 +18,14 @@ classdef Meca500 < handle
             meca.DobotRobot();
             meca.PlotAndColourRobot();%robot,workspace);
         end
-
+        
+%         %% E-stop function
+%         function Stopcommand(self)
+%             while(self.EStop == true)
+%                 disp('Emergency!');
+%                 pause(0.05);
+%             end
+%         end
         %% DobotRobot
         % Given a name (optional), create and return a meca robot my3
         function DobotRobot(meca) 

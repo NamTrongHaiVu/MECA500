@@ -17,16 +17,22 @@ classdef myUR3 < handle
                 self.toolModelFilename = toolModelAndTCPFilenames{1};
                 self.toolParametersFilenamure = toolModelAndTCPFilenames{2};
             end
-            
-            self.GetUR3Robot();
+            location = trotz(180,'deg') * transl(0.25,0,0);
+            self.GetUR3Robot(location);
             self.PlotAndColourRobot();%robot,workspace);
 
             drawnow
         end
 
+        function ESTOPButton(self)
+            while(self.ESTOPButton == true)
+                disp('E-stop pressed');
+                pause(0.05);
+            end
+        end
         %% GetUR3Robot
         % Given a name (optional), create and return a UR3 robot model
-        function GetUR3Robot(self)
+        function GetUR3Robot(self, location)
             pause(0.001);
             name = ['UR3_',datestr(now,'yyyymmddTHHMMSSFFF')];
             L1 = Link('d',0.1519,'a',0,'alpha',pi/2,'qlim',deg2rad([-360 360]), 'offset',0);
@@ -37,7 +43,8 @@ classdef myUR3 < handle
             L6 = Link('d',0.0819,'a',0,'alpha',0,'qlim',deg2rad([-360,360]), 'offset', 0);
              
             self.model = SerialLink([L1 L2 L3 L4 L5 L6],'name',name);
-            self.model.base = self.model.base * trotz(180,'deg') * transl(0.25,0,0);
+            %self.model.base = self.model.base * trotz(180,'deg') * transl(0.25,0,0);
+            self.model.base = location;
         end
 
         %% PlotAndColourRobot

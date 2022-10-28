@@ -5,6 +5,7 @@ hold on
 PlaceObject('table.ply',[1.7,0,0]);
 PlaceObject('wall2.ply',[1.5,-3,0.77]);
 %PlaceObject('sit.ply',[-2.4,2,-0.7]);
+PlaceObject('tubeplace.ply',[-0.8,0,0]);
 
 axis equal
 

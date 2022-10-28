@@ -85,61 +85,61 @@ end
 % end
 % robot.animate(qMatrix);
 % 
-% % 3.2: Manually create cartesian waypoints
-% robot.animate(q1);
-% qWaypoints = [q1 ; robot.ikcon(transl(1.5,-1,0),q1)];
-% qWaypoints = [qWaypoints; robot.ikcon(transl(1,-1,0),qWaypoints(end,:))];
-% qWaypoints = [qWaypoints; robot.ikcon(transl(1.1,-0.5,0),qWaypoints(end,:))];
-% qWaypoints = [qWaypoints; robot.ikcon(transl(1.1,0,0),qWaypoints(end,:))];
-% qWaypoints = [qWaypoints; robot.ikcon(transl(1.1,0.5,0),qWaypoints(end,:))];
-% qWaypoints = [qWaypoints; robot.ikcon(transl(1.1,1,0),qWaypoints(end,:))];
-% qWaypoints = [qWaypoints; robot.ikcon(transl(1.5,1,0),q2)];
-% qWaypoints = [qWaypoints; q2];
-% qMatrix = InterpolateWaypointRadians(qWaypoints,deg2rad(5));
-% if IsCollision(robot,qMatrix,faces,vertex,faceNormals)
-%     error('Collision detected!!');
-% else
-%     display('No collision found');
-% end
-% robot.animate(qMatrix);        
+% 3.2: Manually create cartesian waypoints
+robot.animate(q1);
+qWaypoints = [q1 ; robot.ikcon(transl(1.5,-1,0),q1)];
+qWaypoints = [qWaypoints; robot.ikcon(transl(1,-1,0),qWaypoints(end,:))];
+qWaypoints = [qWaypoints; robot.ikcon(transl(1.1,-0.5,0),qWaypoints(end,:))];
+qWaypoints = [qWaypoints; robot.ikcon(transl(1.1,0,0),qWaypoints(end,:))];
+qWaypoints = [qWaypoints; robot.ikcon(transl(1.1,0.5,0),qWaypoints(end,:))];
+qWaypoints = [qWaypoints; robot.ikcon(transl(1.1,1,0),qWaypoints(end,:))];
+qWaypoints = [qWaypoints; robot.ikcon(transl(1.5,1,0),q2)];
+qWaypoints = [qWaypoints; q2];
+qMatrix = InterpolateWaypointRadians(qWaypoints,deg2rad(5));
+if IsCollision(robot,qMatrix,faces,vertex,faceNormals)
+    error('Collision detected!!');
+else
+    display('No collision found');
+end
+robot.animate(qMatrix);        
 
 % 3.3: Randomly select waypoints (primative RRT)
-robot.animate(q1);
-qWaypoints = [q1;q2];
-isCollision = true;
-checkedTillWaypoint = 1;
-qMatrix = [];
-while (isCollision)
-    startWaypoint = checkedTillWaypoint;
-    for i = startWaypoint:size(qWaypoints,1)-1
-        qMatrixJoin = InterpolateWaypointRadians(qWaypoints(i:i+1,:),deg2rad(10));
-        if ~IsCollision(robot,qMatrixJoin,faces,vertex,faceNormals)
-            qMatrix = [qMatrix; qMatrixJoin]; %#ok<AGROW>
-            robot.animate(qMatrixJoin);
-            size(qMatrix)
-            isCollision = false;
-            checkedTillWaypoint = i+1;
-            % Now try and join to the final goal (q2)
-            qMatrixJoin = InterpolateWaypointRadians([qMatrix(end,:); q2],deg2rad(10));
-            if ~IsCollision(robot,qMatrixJoin,faces,vertex,faceNormals)
-                qMatrix = [qMatrix;qMatrixJoin];
-                % Reached goal without collision, so break out
-                break;
-            end
-        else
-            % Randomly pick a pose that is not in collision
-            qRand = (2 * rand(1,3) - 1) * pi;
-            while IsCollision(robot,qRand,faces,vertex,faceNormals)
-                qRand = (2 * rand(1,3) - 1) * pi;
-            end
-            qWaypoints =[ qWaypoints(1:i,:); qRand; qWaypoints(i+1:end,:)];
-            isCollision = true;
-            break;
-        end
-    end
-end
-robot.animate(qMatrix)
-keyboard
+% robot.animate(q1);
+% qWaypoints = [q1;q2];
+% isCollision = true;
+% checkedTillWaypoint = 1;
+% qMatrix = [];
+% while (isCollision)
+%     startWaypoint = checkedTillWaypoint;
+%     for i = startWaypoint:size(qWaypoints,1)-1
+%         qMatrixJoin = InterpolateWaypointRadians(qWaypoints(i:i+1,:),deg2rad(10));
+%         if ~IsCollision(robot,qMatrixJoin,faces,vertex,faceNormals)
+%             qMatrix = [qMatrix; qMatrixJoin]; %#ok<AGROW>
+%             robot.animate(qMatrixJoin);
+%             size(qMatrix)
+%             isCollision = false;
+%             checkedTillWaypoint = i+1;
+%             % Now try and join to the final goal (q2)
+%             qMatrixJoin = InterpolateWaypointRadians([qMatrix(end,:); q2],deg2rad(10));
+%             if ~IsCollision(robot,qMatrixJoin,faces,vertex,faceNormals)
+%                 qMatrix = [qMatrix;qMatrixJoin];
+%                 % Reached goal without collision, so break out
+%                 break;
+%             end
+%         else
+%             % Randomly pick a pose that is not in collision
+%             qRand = (2 * rand(1,3) - 1) * pi;
+%             while IsCollision(robot,qRand,faces,vertex,faceNormals)
+%                 qRand = (2 * rand(1,3) - 1) * pi;
+%             end
+%             qWaypoints =[ qWaypoints(1:i,:); qRand; qWaypoints(i+1:end,:)];
+%             isCollision = true;
+%             break;
+%         end
+%     end
+% end
+% robot.animate(qMatrix)
+% keyboard
 
 end
 
